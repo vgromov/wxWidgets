@@ -213,6 +213,7 @@ public:
             else if ( !BaseValidator::FromString(s, &value) )
                 return false;
 
+            this->ValueNormalize(value);
             if ( !this->IsInRange(value) )
                 return false;
 
@@ -308,6 +309,9 @@ protected:
     void DoSetMax(LongestValueType max) { m_max = max; }
     LongestValueType DoGetMax() const { return m_max; }
 
+    void ValueNormalize(LongestValueType& WXUNUSED(value)) const
+    { /* Do nothing for integer validator */ }
+    
     bool IsInRange(LongestValueType value) const
     {
         return m_min <= value && value <= m_max;
@@ -412,6 +416,41 @@ protected:
     void DoSetMax(LongestValueType max) { m_max = max; }
     LongestValueType DoGetMax() const { return m_max; }
 
+    // Normalize value to the nearest min or max minding precision
+    void ValueNormalize(LongestValueType& value) const
+    {  
+      if( !m_precision )
+        return;
+      
+      LongestValueType tmpBound;
+      wxString tmp = ToString(m_min);
+      
+#ifdef __WXDEBUG__
+      bool ok = 
+#endif
+      FromString(tmp, &tmpBound);
+      
+      wxASSERT(ok);
+      
+      if( wxIsSameDouble(value, tmpBound) )
+      {
+        value = m_min;
+        return;
+      }
+      
+      tmp = ToString(m_max);
+      
+#ifdef __WXDEBUG__
+      ok = 
+#endif
+      FromString(tmp, &tmpBound);
+
+      wxASSERT(ok);
+      
+      if( wxIsSameDouble(value, tmpBound) )
+        value = m_max;
+    }
+    
     bool IsInRange(LongestValueType value) const
     {
         return m_min <= value && value <= m_max;
